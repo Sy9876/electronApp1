@@ -1,5 +1,8 @@
 {
     "name": "myapp",
     "version": "1.0.01",
-    "main": "main.js"
+    "main": "main.js",
+    "dependencies": {
+        "jquery": "^3.3.1"
+    }
 }
