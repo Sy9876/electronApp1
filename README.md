@@ -58,3 +58,17 @@ index.html
 npm install -g electron
 electron .
 ```
+
+
+
+
+```
+Content-Type: multipart/x-mixed-replace;boundary=boundarydonotcross
+
+http mimetype为multipart/x-mixed-replace报文
+https://www.cnblogs.com/leaven/p/3514650.html
+
+MJPEG协议入门介绍
+http://blog.chinaunix.net/uid-22670933-id-1771591.html
+```
+
