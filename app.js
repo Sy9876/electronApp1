@@ -48,6 +48,12 @@ function takeStaticImage() {
 
     ajaxRequest(serverUrl, 'blob', cbOnload, null);
 }
+function loadImgStatic(blob) {
+    // console.log('loadImgStatic. blob:' + blob);
+    let imgSrc = window.URL.createObjectURL(blob);
+    $('img').attr('src', imgSrc);
+}
+
 
 let multipartContentLength=0;
 
@@ -68,9 +74,10 @@ function incrCallCnt() {
 }
 let lastIndexOfBoundaryStr = 0;  // 
 let boundaryStr='';
+/**/
 function takeMjpegStream() {
     let serverUrl='http://' + server + '/?action=stream';
-
+    let blob2;
     let cbOnreadystatechange = (httpRequest) => {
         if(abortFlg) { httpRequest.abort(); return; }
         // console.log('onreadystatechange. readyState:' + httpRequest.readyState
@@ -97,11 +104,12 @@ function takeMjpegStream() {
                 console.log('got new frame from ' + lastIndexOfBoundaryStr + ' to ' + (lastIndex-1));
                 lastIndexOfBoundaryStr=lastIndex;
                 let frameStr=blob.substr(lastIndexOfBoundaryStr, lastIndex-1);
-                console.log('frameStr: ' + frameStr);
+                // console.log('frameStr: ' + frameStr);
                 let beginIndexForJpeg = frameStr.indexOf('\r\n\r\n');
                 if(beginIndexForJpeg>0) {
                     let jpegStr = frameStr.substr(beginIndexForJpeg+4);
-                    console.log('got jpegStr: ' + jpegStr);
+                    console.log('got jpegStr: ' + jpegStr.length);
+                    blob2 = new Blob([jpegStr], {type : 'image/jpeg'});
                 }
                 
             }
@@ -115,7 +123,11 @@ function takeMjpegStream() {
         
         let deltaLen=blob.length-getLength();
         console.log('onreadystatechange. deltaLen:' + deltaLen);
-        // loadImgStatic(blob);
+        if(blob2!=null && blob2.size>0) {
+            // loadImgStream(blob2);
+            loadImgStatic(blob2);
+        }
+        
         setLength(blob.length);
         
         
@@ -124,8 +136,44 @@ function takeMjpegStream() {
 
     ajaxRequest(serverUrl, "text", null, cbOnreadystatechange);
 }
+/*
+function takeMjpegStream() {
+    let serverUrl='http://' + server + '/?action=stream';
 
-function loadImgStatic(blob) {
+    let cbOnreadystatechange = (httpRequest) => {
+        if(abortFlg) { httpRequest.abort(); return; }
+        // console.log('onreadystatechange. readyState:' + httpRequest.readyState
+        //     + '  status:' + httpRequest.status
+        //     + '  responseType:' + httpRequest.responseType
+        // );
+        // console.log('onreadystatechange. headers:' + httpRequest.getAllResponseHeaders());
+        var blob = httpRequest.response;
+        if(blob==null || blob=='') {
+            console.log('onreadystatechange. blob is null');
+            return;
+        }
+        blob = new Blob([blob], {type : 'image/jpeg'});
+        let len = blob.size;
+        console.log('onreadystatechange. blob size:' + len);
+        var blob2 = blob.slice(0, len, 'image/jpeg');
+
+        let cnt = incrCallCnt();
+        console.log('onreadystatechange. callCnt:' + cnt);
+        
+        if(cnt<10) {
+
+        }
+        else {
+            abortFlg=true;
+        }
+        loadImgStatic(blob);
+    };
+    
+
+    ajaxRequest(serverUrl, "text", null, cbOnreadystatechange);
+}
+*/
+function loadImgStream(blob) {
     // console.log('loadImgStatic. blob:' + blob);
     let lastLength = calcLength(blob.length);
     console.log('loadImgStatic. type:' + typeof(blob) + '  ' + lastLength + '  ' + blob.substr(lastLength));
@@ -133,6 +181,7 @@ function loadImgStatic(blob) {
     // let imgSrc = window.URL.createObjectURL(blob);
     // $('img').attr('src', imgSrc);
 }
+
 
 function initialize () {
     video = window.document.querySelector('video');
