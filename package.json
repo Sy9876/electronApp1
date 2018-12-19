@@ -1,8 +1,17 @@
 {
     "name": "myapp",
-    "version": "1.0.01",
+    "description": "my first electron app",
+    "version": "1.1.0",
     "main": "main.js",
     "dependencies": {
         "jquery": "^3.3.1"
+    },
+    "author": "sy",
+    "build": {
+        "iconUrl": "http://electronjs.org/images/favicon.ico"
+    },
+    "scripts": {
+        "pack": "build",
+        "dist": "build"
     }
 }

@@ -2,12 +2,22 @@
     <head>
         <title>myapp</title>
         <script src="node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="config.js"></script>
         <script src="app.js"></script>
     </head>
     <body>
         <!-- <h1>hello word</h1> -->
         <!-- <canvas width="800" height="600"></canvas> -->
-        <img width="400" height="320"  />
+        <h3>remote webcam</h3>
+        <iframe src="" title="iframe for remote webcam" width="320" height="240">
+            <p>Your browser does not support iframes.</p>
+        </iframe>
+
+        <h3>remote static image</h3>
+        <h3><button onclick="takeStaticImage2()">snapshot</button></h3>
+        <img alter="local webcam" width="400" height="320"  />
+
+        <h3>local webcam</h3>
         <video width="400" height="320" autoplay></video>
     </body>
 </html>

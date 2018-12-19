@@ -1,7 +1,10 @@
 'use strict';
 
 // const electron = require('electron');
-let server='192.168.x.x';
+let server=myConfig.server;
+let authUser = myConfig.authUser;
+let authPwd = myConfig.authPwd;
+
 let video;
 function ajaxRequest(serverUrl, responseType, cbOnload, cbOnreadystatechange) {
     // $.ajax({
@@ -11,7 +14,7 @@ function ajaxRequest(serverUrl, responseType, cbOnload, cbOnreadystatechange) {
     //     processData: false,
     // })
 
-    let authStr="Basic " + btoa("sy:shenyue");
+    let authStr="Basic " + btoa(authUser + ":" + authPwd);
 
     var httpRequest = new XMLHttpRequest();
     httpRequest.open('GET', serverUrl, true);
@@ -35,6 +38,49 @@ function ajaxRequest(serverUrl, responseType, cbOnload, cbOnreadystatechange) {
     httpRequest.send();
 }
 
+
+function processHttpAuth(cb) {
+    var httpRequest = new XMLHttpRequest();
+    let serverUrl = 'http://' + server + '/java.html';
+
+    /* open方法中设置认证信息，能够作用与之后的其它请求，不止ajax，还包括img iframe的src触发的浏览器请求 */
+    httpRequest.open('GET', serverUrl, true, authUser, authPwd);
+    
+    /* 通过http header传递认证信息，不能生效于之后的其它请求。 */
+    // let authStr="Basic " + btoa(authUser + ":" + authPwd);
+    // httpRequest.open('GET', serverUrl, true);
+    // httpRequest.setRequestHeader('Authorization', authStr);
+    
+    httpRequest.responseType = 'text';
+    
+    httpRequest.onload = () => {
+        if(httpRequest.status==200) {
+            console.log('processHttpAuth success');
+            if(typeof(cb)=='function') {
+                cb();
+            }
+        }
+        else if(httpRequest.status==401) {
+            console.log('processHttpAuth failed. user password wrong.');
+        }
+        else {
+            console.log('processHttpAuth failed. responseText: ' + httpRequest.responseText);
+        }
+    };
+
+    httpRequest.onerror = () => {
+        console.log('processHttpAuth onerror. failed.');
+    };
+    
+    httpRequest.send();
+}
+
+function takeStaticImage2() {
+    let serverUrl='http://' + server + '/?action=snapshot';
+    console.log('takeStaticImage2 serverUrl: ' + serverUrl);
+    $('img').attr('src', serverUrl);
+}
+
 function takeStaticImage() {
     let serverUrl='http://' + server + '/?action=snapshot';
     let cbOnload = (httpRequest) => {
@@ -55,133 +101,12 @@ function loadImgStatic(blob) {
 }
 
 
-let multipartContentLength=0;
-
-let abortFlg=false;
-function getLength() {
-    return multipartContentLength;
-}
-function setLength(len) {
-    multipartContentLength=len;
-}
-function calcLength(len) {
-    return len - multipartContentLength;
-}
-let callCnt=0;
-function incrCallCnt() {
-    callCnt++;
-    return callCnt;
-}
-let lastIndexOfBoundaryStr = 0;  // 
-let boundaryStr='';
 /**/
 function takeMjpegStream() {
     let serverUrl='http://' + server + '/?action=stream';
-    let blob2;
-    let cbOnreadystatechange = (httpRequest) => {
-        if(abortFlg) { httpRequest.abort(); return; }
-        // console.log('onreadystatechange. readyState:' + httpRequest.readyState
-        //     + '  status:' + httpRequest.status
-        //     + '  responseType:' + httpRequest.responseType
-        // );
-        // console.log('onreadystatechange. headers:' + httpRequest.getAllResponseHeaders());
-        var blob = httpRequest.responseText;
-        let cnt = incrCallCnt();
-        console.log('onreadystatechange. callCnt:' + cnt + '  responseText.length:' + blob.length);
-        if(boundaryStr=='') {
-            let contentTypeStr = httpRequest.getResponseHeader('Content-type');
-            console.log('onreadystatechange. header:' + contentTypeStr);
-            let m = contentTypeStr.match(/boundary=(.*)/);
-            if(m) {
-                boundaryStr=m[1];
-                console.log('found boundaryStr:' + boundaryStr);
-            }
-        }
-        else {
-            let lastIndex = blob.lastIndexOf('--' + boundaryStr);
-            // console.log('lastIndex:' + lastIndex);
-            if(lastIndex > lastIndexOfBoundaryStr) {
-                console.log('got new frame from ' + lastIndexOfBoundaryStr + ' to ' + (lastIndex-1));
-                lastIndexOfBoundaryStr=lastIndex;
-                let frameStr=blob.substr(lastIndexOfBoundaryStr, lastIndex-1);
-                // console.log('frameStr: ' + frameStr);
-                let beginIndexForJpeg = frameStr.indexOf('\r\n\r\n');
-                if(beginIndexForJpeg>0) {
-                    let jpegStr = frameStr.substr(beginIndexForJpeg+4);
-                    console.log('got jpegStr: ' + jpegStr.length);
-                    blob2 = new Blob([jpegStr], {type : 'image/jpeg'});
-                }
-                
-            }
-        }
-        if(cnt<10) {
-
-        }
-        else {
-            abortFlg=true;
-        }
-        
-        let deltaLen=blob.length-getLength();
-        console.log('onreadystatechange. deltaLen:' + deltaLen);
-        if(blob2!=null && blob2.size>0) {
-            // loadImgStream(blob2);
-            loadImgStatic(blob2);
-        }
-        
-        setLength(blob.length);
-        
-        
-    };
-    
-
-    ajaxRequest(serverUrl, "text", null, cbOnreadystatechange);
+    console.log('takeMjpegStream. set iframe:' + serverUrl);
+    $('iframe').attr('src', serverUrl);
 }
-/*
-function takeMjpegStream() {
-    let serverUrl='http://' + server + '/?action=stream';
-
-    let cbOnreadystatechange = (httpRequest) => {
-        if(abortFlg) { httpRequest.abort(); return; }
-        // console.log('onreadystatechange. readyState:' + httpRequest.readyState
-        //     + '  status:' + httpRequest.status
-        //     + '  responseType:' + httpRequest.responseType
-        // );
-        // console.log('onreadystatechange. headers:' + httpRequest.getAllResponseHeaders());
-        var blob = httpRequest.response;
-        if(blob==null || blob=='') {
-            console.log('onreadystatechange. blob is null');
-            return;
-        }
-        blob = new Blob([blob], {type : 'image/jpeg'});
-        let len = blob.size;
-        console.log('onreadystatechange. blob size:' + len);
-        var blob2 = blob.slice(0, len, 'image/jpeg');
-
-        let cnt = incrCallCnt();
-        console.log('onreadystatechange. callCnt:' + cnt);
-        
-        if(cnt<10) {
-
-        }
-        else {
-            abortFlg=true;
-        }
-        loadImgStatic(blob);
-    };
-    
-
-    ajaxRequest(serverUrl, "text", null, cbOnreadystatechange);
-}
-*/
-function loadImgStream(blob) {
-    // console.log('loadImgStatic. blob:' + blob);
-    let lastLength = calcLength(blob.length);
-    console.log('loadImgStatic. type:' + typeof(blob) + '  ' + lastLength + '  ' + blob.substr(lastLength));
-    
-    // let imgSrc = window.URL.createObjectURL(blob);
-    // $('img').attr('src', imgSrc);
-}
-
 
 function initialize () {
     video = window.document.querySelector('video');
@@ -199,9 +124,14 @@ function initialize () {
         video.srcObject = localMediaStream;
     }, errorCallback);
 
-    // takeStaticImage();
-    takeMjpegStream();
-    // $('img').attr('src', "");
+
+    // http auth
+    processHttpAuth(() => {
+        // takeStaticImage();
+        takeMjpegStream();
+        // $('img').attr('src', "");
+    });
+
 }
 
 window.onload = initialize;
