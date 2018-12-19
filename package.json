@@ -1,17 +1,20 @@
 {
-    "name": "myapp",
-    "description": "my first electron app",
-    "version": "1.1.0",
-    "main": "main.js",
-    "dependencies": {
-        "jquery": "^3.3.1"
-    },
-    "author": "sy",
-    "build": {
-        "iconUrl": "http://electronjs.org/images/favicon.ico"
-    },
-    "scripts": {
-        "pack": "build",
-        "dist": "build"
-    }
+  "name": "myapp",
+  "description": "my first electron app",
+  "version": "1.1.0",
+  "main": "main.js",
+  "dependencies": {
+    "jquery": "^3.3.1"
+  },
+  "author": "sy",
+  "build": {
+    "iconUrl": "http://electronjs.org/images/favicon.ico"
+  },
+  "scripts": {
+    "pack": "build",
+    "dist": "build"
+  },
+  "devDependencies": {
+    "electron": "^3.0.13"
+  }
 }
